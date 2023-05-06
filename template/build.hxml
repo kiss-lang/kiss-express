@@ -1,6 +1,6 @@
 -lib kiss
--lib express
 -lib kiss-express
+-cp externs
 -cp src
 --main template.Main
 --js index.js
