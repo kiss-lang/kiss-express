@@ -3,6 +3,7 @@
 -cp src
 --each
 --main template.FrontEndMain
+--dce full
 --js frontend.js
 --next
 -cp externs
