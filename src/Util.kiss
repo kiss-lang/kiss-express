@@ -1,0 +1,2 @@
+(defReaderMacro "<#" [stream]
+    `(js.Browser.document.getElementById ,(stream.expect "an element id" ->(stream.takeUntilAndDrop ">"))))
