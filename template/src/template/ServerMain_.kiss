@@ -1,0 +1,10 @@
+(defMacro scriptContent []
+    (File.getContent "frontend.js"))
+
+(let [app (Express.call)
+        port 3000
+        title "Kiss-Express Template"]
+    (app.get "/" ->[req res next] (res.send "<head><title>${title}</title><script>$(scriptContent)</script></head> Hello world from the server!"))
+    (#unless test
+        (app.listen port ->(print "kiss-express listening at http://localhost:$port"))))
+

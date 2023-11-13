@@ -1,7 +1,12 @@
 -lib kiss
+--each
+-cp src
+--main template.FrontEndMain
+--js frontend.js
+--next
 -lib kiss-express
 -cp externs
 -cp src
---main template.Main
+--main template.ServerMain
 --js index.js
 --cmd node index.js

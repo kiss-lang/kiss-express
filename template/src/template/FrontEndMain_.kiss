@@ -1,0 +1,7 @@
+(import js.Browser)
+
+(Browser.window.addEventListener "load" ->{
+    (let [p (Browser.document.createElement "p")]
+        (set p.innerHTML "Hello world from the frontend!")
+        (Browser.document.body.appendChild p))
+})
