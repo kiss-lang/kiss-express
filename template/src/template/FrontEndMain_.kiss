@@ -1,3 +1,5 @@
+(loadFrom "kiss-express" "src/FrontEndUtil.kiss")
+
 (import js.Browser)
 
 (Browser.window.addEventListener "load" ->{

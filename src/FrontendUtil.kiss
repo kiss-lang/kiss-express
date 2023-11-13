@@ -1,2 +1,8 @@
 (defReaderMacro "<#" [stream]
     `(js.Browser.document.getElementById ,(stream.expect "an element id" ->(stream.takeUntilAndDrop ">"))))
+
+(function p [text &opt id]
+    (let [pElement (js.Browser.document.createElement "p")]
+        (set pElement.innerHTML text)
+        (when id (set pElement.id id))
+        pElement))
