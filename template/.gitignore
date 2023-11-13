@@ -1,5 +1,4 @@
 node_modules/
 .haxelib/
-externs/
 libs/
 index.js
