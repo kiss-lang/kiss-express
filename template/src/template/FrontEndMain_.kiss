@@ -1,4 +1,4 @@
-(loadFrom "kiss-express" "src/FrontEndUtil.kiss")
+(loadFrom "kiss-express" "src/FrontendUtil.kiss")
 
 (import js.Browser)
 
