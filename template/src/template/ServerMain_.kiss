@@ -3,7 +3,7 @@
 (defMacro scriptContent []
     (File.getContent "frontend.js"))
 
-(kissExpress app
+(kissExpress app [3000]
     (app.get "/"
         ->[req res next]
             (res.send "<head><title>${title}</title><script>$(scriptContent)</script></head> Hello world from the server!")))

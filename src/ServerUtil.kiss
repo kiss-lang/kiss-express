@@ -1,8 +1,25 @@
-(defMacro kissExpress [app &body body]
-    `(let [,app (Express.call)
-            upload (Multer.call)
-            port 3000
-            title "Kiss-Express Template"]
-        ,@body
-        (#unless test
-            (.listen ,app port ->(print "kiss-express listening at http://localhost:$port")))))
+(defMacro kissExpress [app idealPorts &rest body]
+    (let [kissExpressFile "$(userHome)/.kiss-express.json"]
+        `{
+            (savedVarFile ,kissExpressFile)
+            (savedVar :Map<String,Int> takenPorts (new Map))
+
+            (awaitLet [&sync pkg (js.Lib.require "./package.json")
+                            getPort (js.Lib.dynamicImport "get-port")
+                            port (takePort pkg.name getPort ,idealPorts)]
+                (let [,app (Express.call)
+                        upload (Multer.call)
+                        title pkg.name]
+                    ,@body
+                    (#unless test
+                        (.listen ,app port ->(print "kiss-express listening at http://localhost:$port")))))
+        }))
+
+(function takePort [name getPort idealPorts]
+    (awaitLet [port
+                (Reflect.callMethod getPort
+                    (Reflect.field getPort "default")
+                    [(object port idealPorts)])]
+        (withMutProperties [takenPorts]
+            (dictSet takenPorts name port))
+        port))
