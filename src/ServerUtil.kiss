@@ -1,3 +1,5 @@
+(var &mut pageName "")
+
 (defMacro kissExpress [app idealPorts &rest body]
     (let [kissExpressFile "$(userHome)/.kiss-express.json"]
         `{
@@ -7,12 +9,12 @@
             (awaitLet [&sync pkg (js.Lib.require "./package.json")
                             getPort (js.Lib.dynamicImport "get-port")
                             port (takePort pkg.name getPort ,idealPorts)]
+                (set pageName pkg.name)
                 (let [,app (Express.call)
-                        upload (Multer.call)
-                        title pkg.name]
+                        ,(symbol) (Multer.call)]
                     ,@body
                     (#unless test
-                        (.listen ,app port ->(print "kiss-express listening at http://localhost:$port")))))
+                        (.listen ,app port ->(print "$pageName listening at http://localhost:$port")))))
         }))
 
 (function takePort [name getPort idealPorts]
@@ -23,3 +25,16 @@
         (withMutProperties [takenPorts]
             (dictSet takenPorts name port))
         port))
+
+(function kissExpressHeader []
+    (+ "<header><table><th>"
+        (let [runningSites (sort (collect (takenPorts.keys)))]
+            (apply +
+                (for site runningSites
+                    (+ "<td>"
+                        (if (= site pageName) "<b>" "")
+                        "<a href=\"/\" onclick=\"javascript:event.target.port=$(dictGet takenPorts site);\">${site}</a>"
+                        (if (= site pageName) "</b>" "")
+                        "</td>")
+                    )))
+        "</th></table></header>"))
