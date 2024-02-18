@@ -1,0 +1,8 @@
+(defMacro kissExpress [app &body body]
+    `(let [,app (Express.call)
+            upload (Multer.call)
+            port 3000
+            title "Kiss-Express Template"]
+        ,@body
+        (#unless test
+            (.listen ,app port ->(print "kiss-express listening at http://localhost:$port")))))
