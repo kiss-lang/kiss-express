@@ -1,7 +1,7 @@
 (loadFrom "kiss-express" "src/ServerUtil.kiss")
 
 (defMacro scriptContent []
-    (File.getContent "frontend.js"))
+    (File.getContent "bin/frontend.js"))
 
 (kissExpress app [3000]
     (app.get "/"

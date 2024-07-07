@@ -6,7 +6,7 @@
             (savedVarFile ,kissExpressFile)
             (savedVar :Map<String,Int> takenPorts (new Map))
 
-            (awaitLet [&sync pkg (js.Lib.require "./package.json")
+            (awaitLet [&sync pkg (js.Lib.require "../package.json")
                             getPort (js.Lib.dynamicImport "get-port")
                             port (takePort pkg.name getPort ,idealPorts)]
                 (set pageName pkg.name)

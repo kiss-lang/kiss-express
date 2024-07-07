@@ -1,5 +1,4 @@
 node_modules/
 .haxelib/
 libs/
-index.js
-frontend.js
+bin/

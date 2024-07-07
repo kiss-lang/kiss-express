@@ -4,9 +4,9 @@
 --each
 --main template.FrontEndMain
 --dce full
---js frontend.js
+--js bin/frontend.js
 --next
 -cp externs
 --main template.ServerMain
---js index.js
---cmd node index.js
+--js bin/index.js
+--cmd node bin/index.js
