@@ -148,6 +148,37 @@
                         (.listen ,app port ->(print "$pageName listening at http://localhost:$port")))))
         }))
 
+
+(defMacro userProp [typedDataName defaultValue &builder b]
+    (let [innerT (typeName typedDataName)
+            dataName (symbolNameValue typedDataName true)
+            dataNameSymbol (b.symbol dataName)
+            property (b.typed "Map<String,${innerT}>" dataNameSymbol)]
+        `{
+            (savedVar ,property (new Map))
+            (function ,(b.typed innerT (b.symbol "get_user_${dataName}")) [req]
+                (unless (.exists ,dataNameSymbol req.user?.username)
+                    (when req.user?.username
+                        (withMutProperties [,dataNameSymbol]
+                            (dictSet ,dataNameSymbol req.user?.username ,defaultValue))))
+                (dictGet ,dataNameSymbol req.user?.username))
+            (function ,(b.typed innerT (b.symbol "set_user_${dataName}")) [v req]
+                (when req.user?.username
+                    (withMutProperties [,dataNameSymbol]
+                        (dictSet ,dataNameSymbol req.user?.username v))
+                    v))
+        }))
+
+(defMacro withUserProp [dataNameSymbol req &builder b &body body]
+    (let [dataNameStr (symbolNameValue dataNameSymbol)
+            getSymbol (symbol "get_user_${dataNameStr}")
+            setSymbol (symbol "set_user_${dataNameStr}")
+            resultSymbol (symbol)]
+        `(let [&mut ,dataNameSymbol (,getSymbol ,req)
+                ,resultSymbol {,@body}]
+            (,setSymbol ,dataNameSymbol ,req)
+            ,resultSymbol)))
+
 (function takePort [name getPort idealPorts]
     (awaitLet [port
                 (Reflect.callMethod getPort
