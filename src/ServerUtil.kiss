@@ -5,6 +5,10 @@
 (importAs passport_local.Strategy LocalStrategy)
 (import js.Node)
 
+(defMacro req_res_next [&body body]
+    `(lambda [:Dynamic req :Dynamic res :Dynamic next]
+        ,@body))
+
 (defMacro kissExpress [app idealPorts &rest body]
     (let [kissExpressFile "$(userHome)/.kiss-express.json"
             kissExpressDbFile "$(userHome)/.kiss-express.db"]
@@ -90,7 +94,7 @@
                                 failureMessage true)))
 
                     (.get ,app "/login"
-                        ->[:Dynamic req :Dynamic res :Dynamic next] {
+                        (req_res_next
                             (res.send
                                 #"<h1>Sign in</h1>
                                     <form action="/login/password" method="post">
@@ -103,15 +107,14 @@
                                             <input id="current-password" name="password" type="password" autocomplete="current-password" required>
                                         </section>
                                         <button type="submit">Sign in</button>
-                                    </form>"#)
-                        })
-                    (.post ,app "/logout" ->[:Dynamic req :Dynamic res :Dynamic next]
+                                    </form>"#)))
+                    (.post ,app "/logout" (req_res_next
                         (req.logout ->err {
                             (when err (return (next err)))
                             (res.redirect "/")
-                        }))
+                        })))
 
-                    (.get ,app "/signup" ->[:Dynamic req :Dynamic res :Dynamic next]
+                    (.get ,app "/signup" (req_res_next
                         (res.send #"
                             <h1>Sign up</h1>
                             <form action="/signup" method="post">
@@ -124,8 +127,8 @@
                                     <input id="new-password" name="password" type="password" autocomplete="new-password" required>
                                 </section>
                                 <button type="submit">Sign up</button>
-                            </form>"#))
-                    (.post ,app "/signup" ->[:Dynamic req :Dynamic res :Dynamic next]
+                            </form>"#)))
+                    (.post ,app "/signup" (req_res_next
                         (let [:Dynamic salt (Crypto.randomBytes 16)]
                             (Crypto.pbkdf2 req.body.password salt 310000 32 "sha256" ->[err hashedPassword] {
                                 (when err (return (next err)))
@@ -142,7 +145,7 @@
                                                 (res.redirect "/")
                                             }))
                                     })
-                                })))
+                                }))))
                     ,@body
                     (#unless test
                         (.listen ,app port ->(print "$pageName listening at http://localhost:$port")))))

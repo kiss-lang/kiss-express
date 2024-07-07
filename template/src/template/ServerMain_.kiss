@@ -3,7 +3,16 @@
 (defMacro scriptContent []
     (File.getContent "bin/frontend.js"))
 
+(userProp :String favWord "default")
+
 (kissExpress app [3000]
     (app.get "/"
-        ->[req res next]
-            (res.send "<head><title>${pageName}</title><script>$(scriptContent)</script></head> $(kissExpressHeader req) Hello world from the server!")))
+        (req_res_next
+            (res.send "<head><title>${pageName}</title><script>$(scriptContent)</script></head> $(kissExpressHeader req) ${req.user} Hello world from the server! $(get_user_favWord req)")))
+    (app.get "/test"
+        (req_res_next
+            (set_user_favWord "test" req)
+            (withUserProp favWord req
+                (let [s "Your favWord was $favWord but now it is "]
+                    (set favWord "test2")
+                    (res.send "${s} ${favWord}"))))))
