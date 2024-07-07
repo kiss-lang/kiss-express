@@ -1,0 +1,3 @@
+package passport_local;
+
+typedef VerifyFunctionWithRequest = (req:express.Request<express_serve_static_core.ParamsDictionary, Dynamic, Dynamic, qs.ParsedQs, haxe.DynamicAccess<Dynamic>>, username:String, password:String, done:ts.AnyOf3<(error:Dynamic) -> Void, (error:Dynamic, user:ts.AnyOf2<Bool, global.express.User>) -> Void, (error:Dynamic, user:ts.AnyOf2<Bool, global.express.User>, options:IVerifyOptions) -> Void>) -> Void;

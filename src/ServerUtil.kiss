@@ -1,7 +1,13 @@
 (var &mut pageName "")
 
+(import sqlite3.Database)
+(import node.Crypto)
+(importAs passport_local.Strategy LocalStrategy)
+(import js.Node)
+
 (defMacro kissExpress [app idealPorts &rest body]
-    (let [kissExpressFile "$(userHome)/.kiss-express.json"]
+    (let [kissExpressFile "$(userHome)/.kiss-express.json"
+            kissExpressDbFile "$(userHome)/.kiss-express.db"]
         `{
             (savedVarFile ,kissExpressFile)
             (savedVar :Map<String,Int> takenPorts (new Map))
@@ -10,8 +16,133 @@
                             getPort (js.Lib.dynamicImport "get-port")
                             port (takePort pkg.name getPort ,idealPorts)]
                 (set pageName pkg.name)
-                (let [,app (Express.call)
+                (let [ db (new Database ,kissExpressDbFile)
+                        SQLiteStore (ConnectSqlite3.call ExpressSession)
+                        ,app (Express.call)
                         ,(symbol) (Multer.call)]
+                    (.use ,app (Express.json))
+                    (.use ,app (Express.urlencoded (object extended false)))
+                    (db.serialize ->:Void {
+                        (db.run
+                            "CREATE TABLE IF NOT EXISTS users (
+                                id INTEGER PRIMARY KEY,
+                                username TEXT UNIQUE,
+                                hashed_password BLOB,
+                                salt BLOB,
+                                name TEXT,
+                                email TEXT UNIQUE,
+                                email_verified INTEGER)"
+                            (object))
+                        (db.run
+                            "CREATE TABLE IF NOT EXISTS federated_credentials (
+                                id INTEGER PRIMARY KEY,
+                                user_id INTEGER NOT NULL,
+                                provider TEXT NOT NULL,
+                                subject TEXT NOT NULL,
+                                UNIQUE (provider, subject))"
+                            (object))
+                    })
+
+                    (Passport.value.use
+                        (new LocalStrategy ->[:Dynamic username :Dynamic password :Dynamic cb] {
+                            (db.get
+                                "SELECT * FROM users WHERE username = ?"
+                                [ username ]
+                                ->[:Dynamic err :Dynamic row] {
+                                    (when err
+                                        (return (cb err)))
+                                    (unless row
+                                        (return (cb null false (object message "Incorrect username or password."))))
+    
+                                    (Crypto.pbkdf2 password row.salt 310000 32 "sha256" ->[:Dynamic err :Dynamic hashedPassword] {
+                                        (when err
+                                            (return (cb err)))
+                                        (unless (Crypto.timingSafeEqual row.hashed_password, hashedPassword)
+                                            (return (cb null false (object message "Incorrect username or password."))))
+                                        
+                                        (return (cb null row))
+                                    })
+                                })
+                        }))
+
+                    (Passport.value.serializeUser ->[:Dynamic user :Dynamic cb]
+                        (Node.process.nextTick ->:Void
+                            (cb null (object id user.id username user.username))))
+
+                    (Passport.value.deserializeUser ->[:Dynamic user :Dynamic cb] 
+                        (Node.process.nextTick ->:Void
+                            (return (cb null user))))
+
+                    (.use ,app 
+                        (ExpressSession.call 
+                            (object
+                                secret "keyboard cat"
+                                resave false
+                                saveUninitialized false
+                                store (js.Syntax.construct "SQLiteStore" (object db "sessions.db" dir (userHome))))))
+                    (.use ,app (Passport.value.authenticate "session"))
+                    (.post ,app "/login/password"
+                        (Passport.value.authenticate
+                            "local"
+                            (object
+                                successRedirect "/"
+                                failureRedirect "/login"
+                                failureMessage true)))
+
+                    (.get ,app "/login"
+                        ->[:Dynamic req :Dynamic res :Dynamic next] {
+                            (res.send
+                                #"<h1>Sign in</h1>
+                                    <form action="/login/password" method="post">
+                                        <section>
+                                            <label for="username">Username</label>
+                                            <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+                                        </section>
+                                        <section>
+                                            <label for="current-password">Password</label>
+                                            <input id="current-password" name="password" type="password" autocomplete="current-password" required>
+                                        </section>
+                                        <button type="submit">Sign in</button>
+                                    </form>"#)
+                        })
+                    (.post ,app "/logout" ->[:Dynamic req :Dynamic res :Dynamic next]
+                        (req.logout ->err {
+                            (when err (return (next err)))
+                            (res.redirect "/")
+                        }))
+
+                    (.get ,app "/signup" ->[:Dynamic req :Dynamic res :Dynamic next]
+                        (res.send #"
+                            <h1>Sign up</h1>
+                            <form action="/signup" method="post">
+                                <section>
+                                    <label for="username">Username</label>
+                                    <input id="username" name="username" type="text" autocomplete="username" required>
+                                </section>
+                                <section>
+                                    <label for="new-password">Password</label>
+                                    <input id="new-password" name="password" type="password" autocomplete="new-password" required>
+                                </section>
+                                <button type="submit">Sign up</button>
+                            </form>"#))
+                    (.post ,app "/signup" ->[:Dynamic req :Dynamic res :Dynamic next]
+                        (let [:Dynamic salt (Crypto.randomBytes 16)]
+                            (Crypto.pbkdf2 req.body.password salt 310000 32 "sha256" ->[err hashedPassword] {
+                                (when err (return (next err)))
+                                (db.run "INSERT INTO users (username, hashed_password, salt) VALUES (?, ?, ?)"
+                                    (array Dynamic
+                                        req.body.username
+                                        hashedPassword
+                                        salt)
+                                    ->err {
+                                        (when err (return (next err)))
+                                        (let [user (object id (js.Syntax.code "this.lastID") username req.body.username)]
+                                            (req.login user ->err {
+                                                (when err (return (next err)))
+                                                (res.redirect "/")
+                                            }))
+                                    })
+                                })))
                     ,@body
                     (#unless test
                         (.listen ,app port ->(print "$pageName listening at http://localhost:$port")))))
@@ -30,7 +161,7 @@
             (dictSet takenPorts name port))
         port))
 
-(function kissExpressHeader []
+(function kissExpressHeader [req]
     (+ "<header><table><th>"
         (let [runningSites (sort (collect (takenPorts.keys)))]
             (apply +
@@ -41,4 +172,11 @@
                         (if (= site pageName) "</b>" "")
                         "</td>")
                     )))
-        "</th></table></header>"))
+        #"</th></table>
+        <a class="button" href="/login">Sign in</a>
+        <form action="/logout" method="post">"#
+            req.user?.username
+            #"<button type="submit">Sign out</button>
+        </form>
+        <a class="button" href="/signup">Sign up</a>
+        </header>"#))

@@ -6,4 +6,4 @@
 (kissExpress app [3000]
     (app.get "/"
         ->[req res next]
-            (res.send "<head><title>${pageName}</title><script>$(scriptContent)</script></head> $(kissExpressHeader) Hello world from the server!")))
+            (res.send "<head><title>${pageName}</title><script>$(scriptContent)</script></head> $(kissExpressHeader req) Hello world from the server!")))
