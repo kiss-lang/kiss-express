@@ -57,7 +57,7 @@
                                     (Crypto.pbkdf2 password row.salt 310000 32 "sha256" ->[:Dynamic err :Dynamic hashedPassword] {
                                         (when err
                                             (return (cb err)))
-                                        (unless (Crypto.timingSafeEqual row.hashed_password, hashedPassword)
+                                        (unless (Crypto.timingSafeEqual row.hashed_password hashedPassword)
                                             (return (cb null false (object message "Incorrect username or password."))))
                                         
                                         (return (cb null row))
