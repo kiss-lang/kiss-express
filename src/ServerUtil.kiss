@@ -23,6 +23,10 @@
                     (Reflect.field getPort "default")
                     [(object port idealPorts)])]
         (withMutProperties [takenPorts]
+            // Overwrite saved port information from servers that aren't running now
+            (doFor =>site _port takenPorts
+                (when (= _port port)
+                    (takenPorts.remove site)))
             (dictSet takenPorts name port))
         port))
 
