@@ -5,8 +5,8 @@
 (importAs passport_local.Strategy LocalStrategy)
 (import js.Node)
 
-(defMacro req_res_next [&body body]
-    `(lambda [:Dynamic req :Dynamic res :Dynamic next]
+(defMacro req_res_next [otherArgs &body body]
+    `(lambda [:Dynamic req :Dynamic res :Dynamic next ,@otherArgs]
         ,@body))
 
 (defMacro kissExpress [app idealPorts &rest body]
@@ -94,7 +94,7 @@
                                 failureMessage true)))
 
                     (.get ,app "/login"
-                        (req_res_next
+                        (req_res_next []
                             (res.send
                                 #"<h1>Sign in</h1>
                                     <form action="/login/password" method="post">
@@ -108,13 +108,13 @@
                                         </section>
                                         <button type="submit">Sign in</button>
                                     </form>"#)))
-                    (.post ,app "/logout" (req_res_next
+                    (.post ,app "/logout" (req_res_next []
                         (req.logout ->err {
                             (when err (return (next err)))
                             (res.redirect "/")
                         })))
 
-                    (.get ,app "/signup" (req_res_next
+                    (.get ,app "/signup" (req_res_next []
                         (res.send #"
                             <h1>Sign up</h1>
                             <form action="/signup" method="post">
@@ -128,7 +128,7 @@
                                 </section>
                                 <button type="submit">Sign up</button>
                             </form>"#)))
-                    (.post ,app "/signup" (req_res_next
+                    (.post ,app "/signup" (req_res_next []
                         (let [:Dynamic salt (Crypto.randomBytes 16)]
                             (Crypto.pbkdf2 req.body.password salt 310000 32 "sha256" ->[err hashedPassword] {
                                 (when err (return (next err)))
@@ -150,7 +150,6 @@
                     (#unless test
                         (.listen ,app port ->(print "$pageName listening at http://localhost:$port")))))
         }))
-
 
 (defMacro userProp [typedDataName defaultValue &builder b]
     (let [innerT (typeName typedDataName)
