@@ -5,6 +5,11 @@
 (importAs passport_local.Strategy LocalStrategy)
 (import js.Node)
 
+(var :Array<Dynamic->Void> onLogoutEvents [])
+
+(defMacro onLogout [req &body body]
+    `(onLogoutEvents.push (lambda [,req] ,@body)))
+
 (defMacro req_res_next [otherArgs &body body]
     `(lambda [:Dynamic req :Dynamic res :Dynamic next ,@otherArgs]
         ,@body))
@@ -109,6 +114,8 @@
                                         <button type="submit">Sign in</button>
                                     </form>"#)))
                     (.post ,app "/logout" (req_res_next []
+                        (doFor event onLogoutEvents
+                            (event req))
                         (req.logout ->err {
                             (when err (return (next err)))
                             (res.redirect "/")
