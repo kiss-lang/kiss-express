@@ -188,6 +188,16 @@
             (,setSymbol ,dataNameSymbol ,req)
             ,resultSymbol)))
 
+(defMacroFunction _withUserProps [dataNameSymbols req &opt body]
+    (let [l (Helpers.argList dataNameSymbols "withUserProps")]
+        (if l
+                `(withUserProp ,(first l) ,req
+                    ,(_withUserProps (l.slice 1) req body))
+            body)))
+
+(defMacro withUserProps [dataNameSymbols req &body body]
+    (_withUserProps dataNameSymbols req body))
+
 (function takePort [name getPort idealPorts]
     (awaitLet [port
                 (Reflect.callMethod getPort
