@@ -27,7 +27,7 @@
                 (set pageName pkg.name)
                 (let [ db (new Database ,kissExpressDbFile)
                         SQLiteStore (ConnectSqlite3.call ExpressSession)
-                        ,app (Express.call)
+                        :Dynamic ,app (Express.call)
                         ,(symbol) (Multer.call)]
                     (.use ,app (Express.json))
                     (.use ,app (Express.urlencoded (object extended false)))
