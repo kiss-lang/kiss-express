@@ -203,6 +203,8 @@
                 (Reflect.callMethod getPort
                     (Reflect.field getPort "default")
                     [(object port idealPorts)])]
+        (catch [e]
+            (throw "Error from takePort(): $e"))
         (withMutProperties [takenPorts]
             // Overwrite saved port information from servers that aren't running now
             (doFor =>site _port takenPorts
