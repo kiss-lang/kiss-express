@@ -1,0 +1,20 @@
+(defNew []
+    (super)
+    // TODO generic error handlers
+    )
+
+(method onKeyDown [:js.html.KeyboardEvent event]
+    (cond
+        ((= 1 event.key.length)
+            (handleKey event.key))
+        // TODO make sure handling special keys consistently with FlxKeyShortcutHandler
+        (true
+            (handleKey (event.key.toLowerCase)))))
+
+(method &override :Void start []
+    (super.start)
+    (js.Browser.document.addEventListener "keydown" onKeyDown))
+
+(method &override :Void cancel []
+    (super.cancel)
+    (js.Browser.document.removeEventListener "keydown" onKeyDown))
