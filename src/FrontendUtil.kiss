@@ -1,6 +1,18 @@
 (defReaderMacro "<#" [stream]
     `(js.Browser.document.getElementById ,(stream.expect "an element id" ->(stream.takeUntilAndDrop ">"))))
 
+(defReaderMacro "<." [stream]
+    `(js.Browser.document.getElementsByClassName ,(stream.expect "a class name" ->(stream.takeUntilAndDrop ">"))))
+
+(defReaderMacro "<" [stream &builder b]
+    (case (stream.expect "next character" ->(stream.peekChars 1))
+        // less-than:
+        (" "
+            (b.symbol "<"))
+        // elements by tag name:
+        (otherwise
+            `(js.Browser.document.getElementsByTagName ,(stream.expect "a tag name" ->(stream.takeUntilAndDrop ">"))))))
+
 (function p [text &opt id]
     (let [pElement (js.Browser.document.createElement "p")]
         (set pElement.innerHTML text)

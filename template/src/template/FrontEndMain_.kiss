@@ -4,6 +4,12 @@
 
 (Browser.window.addEventListener "load" ->{
     (let [p (Browser.document.createElement "p")]
-        (set p.innerHTML "Hello world from the frontend!")
+        (set p.innerHTML "Hello world from the frontend! <br />")
+
+        (+= p.innerHTML "(< 0 1): $(< 0 1) <br />")
+        (+= p.innerHTML "<#id>: $<#id> <br />")
+        (+= p.innerHTML ".length <tagName>: $.length <tagName> <br />")
+        (+= p.innerHTML ".length <.className>: $.length <.className> <br />")
+
         (Browser.document.body.appendChild p))
 })
