@@ -18,3 +18,17 @@
         (set pElement.innerHTML text)
         (when id (set pElement.id id))
         pElement))
+
+(defMacro reloadOnFocus []
+    (let [blurred (symbol)]
+        `{
+            (var &mut ,blurred false)
+            (js.Browser.window.addEventListener "blur" ->{
+                (set ,blurred true)
+            })
+            (js.Browser.window.addEventListener "focus" ->{
+                (when ,blurred
+                    (js.Browser.location.reload))
+                (set ,blurred false)
+            })
+        }))
