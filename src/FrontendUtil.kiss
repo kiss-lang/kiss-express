@@ -32,3 +32,20 @@
                 (set ,blurred false)
             })
         }))
+
+(function getTimeZone []
+    .timeZone (.resolvedOptions (new js.lib.intl.DateTimeFormat)))
+
+// Format the given date's day in the current timezone (default to current time)
+(function localDateString [&opt :Date date :String timeZone]
+    (default date (Date.now))
+    (default timeZone (getTimeZone))
+    (let [jsDate (js.lib.Date.fromHaxeDate date)]
+        (jsDate.toLocaleDateString [] (objectWith timeZone))))
+
+// Format the given date's day in the given timezone (default to current time & time zone)
+(function localTimeString [&opt :Date date :String timeZone]
+    (default date (Date.now))
+    (default timeZone (getTimeZone))
+    (let [jsDate (js.lib.Date.fromHaxeDate date)]
+        (jsDate.toLocaleTimeString [] (objectWith timeZone))))
