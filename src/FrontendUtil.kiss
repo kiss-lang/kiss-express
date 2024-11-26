@@ -36,16 +36,21 @@
 (function getTimeZone []
     .timeZone (.resolvedOptions (new js.lib.intl.DateTimeFormat)))
 
-// Format the given date's day in the current timezone (default to current time)
-(function localDateString [&opt :Date date :String timeZone]
+(function :String _localDateString [:Bool dateString &opt :Date date :String dateStyle :String timeStyle :String timeZone]
     (default date (Date.now))
+    (default dateStyle "short")
+    (default timeStyle dateStyle)
     (default timeZone (getTimeZone))
-    (let [jsDate (js.lib.Date.fromHaxeDate date)]
-        (jsDate.toLocaleDateString [] (objectWith timeZone))))
+    (let [jsDate (js.lib.Date.fromHaxeDate date)
+            :Dynamic options
+                (if dateString
+                        (objectWith dateStyle timeZone)
+                    (objectWith timeStyle timeZone))]
+        (if dateString
+                (jsDate.toLocaleDateString [] options)
+            (jsDate.toLocaleTimeString [] options))))
 
-// Format the given date's day in the given timezone (default to current time & time zone)
-(function localTimeString [&opt :Date date :String timeZone]
-    (default date (Date.now))
-    (default timeZone (getTimeZone))
-    (let [jsDate (js.lib.Date.fromHaxeDate date)]
-        (jsDate.toLocaleTimeString [] (objectWith timeZone))))
+// Format the given Date's day in the given timezone (default to current today's date)
+(var :haxe.Constraints.Function localDateString (_localDateString.bind true))
+// Format the given Date's time in the given timezone (default to current time & time zone)
+(var :haxe.Constraints.Function localTimeString (_localDateString.bind false))
