@@ -23,14 +23,16 @@
     (let [blurred (symbol)]
         `{
             (var &mut ,blurred false)
-            (js.Browser.window.addEventListener "blur" ->{
-                (set ,blurred true)
-            })
-            (js.Browser.window.addEventListener "focus" ->{
-                (when ,blurred
-                    (js.Browser.location.reload))
-                (set ,blurred false)
-            })
+            (js.Browser.window.addEventListener "blur"
+                ->e
+                    (when (= e.target js.Browser.window)
+                        (set ,blurred true)))
+            (js.Browser.window.addEventListener "focus"
+                ->e
+                    (when (= js.Browser.window.document.activeElement js.Browser.window.document.body)
+                        (when ,blurred
+                            (js.Browser.location.reload))
+                        (set ,blurred false)))
         }))
 
 (function getTimeZone []
