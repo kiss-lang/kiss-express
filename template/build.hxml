@@ -4,6 +4,7 @@
 --each
 --main template.FrontEndMain
 --dce full
+--define frontend
 --js bin/frontend.js
 --next
 -cp externs
