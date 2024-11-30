@@ -53,6 +53,8 @@
             (jsDate.toLocaleTimeString [] options))))
 
 // Format the given Date's day in the given timezone (default to current today's date)
-(var :haxe.Constraints.Function localDateString (_localDateString.bind true))
+(function :String localDateString [&opt :Date date :String dateStyle :String timeStyle :String timeZone]
+    (_localDateString true date dateStyle timeStyle timeZone))
 // Format the given Date's time in the given timezone (default to current time & time zone)
-(var :haxe.Constraints.Function localTimeString (_localDateString.bind false))
+(function :String localTimeString [&opt :Date date :String dateStyle :String timeStyle :String timeZone]
+    (_localDateString false date dateStyle timeStyle timeZone))
