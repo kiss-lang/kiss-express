@@ -3,14 +3,15 @@
 -cp src
 --each
 
--cp externs
---main template.ServerMain
---js bin/index.js
---next
-
 --main template.FrontEndMain
 --dce full
 --define frontend
 --js bin/frontend.js
+
+--next
+
+-cp externs
+--main template.ServerMain
+--js bin/index.js
 
 --cmd node bin/index.js
