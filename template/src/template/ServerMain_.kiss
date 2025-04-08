@@ -8,7 +8,10 @@
 (kissExpress app [3001]
     (app.get "/"
         (req_res_next []
-            (res.send (wrapHTML req "<script>$(scriptContent)</script> ${req.user} Hello world from the server! $(get_user_favWord req)"))))
+            (res.send (wrapHTML req "<script>$(scriptContent)</script>
+                    <r-c>
+                        <c1-1>${req.user} Hello world from the server! $(get_user_favWord req)</c1-1>
+                    </r-c>"))))
     (app.get "/test"
         (req_res_next []
             (set_user_favWord "test" req)

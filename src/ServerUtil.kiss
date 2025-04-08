@@ -268,9 +268,7 @@
         </head>
         <body>
             $(kissExpressHeader req)
-            <r-c>
-                ${html}
-            </r-c>
+            ${html}
         </body>
         </html>
 	"
