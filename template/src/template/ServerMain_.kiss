@@ -5,10 +5,10 @@
 
 (userProp :String favWord "default")
 
-(kissExpress app [3000]
+(kissExpress app [3001]
     (app.get "/"
         (req_res_next []
-            (res.send "<head><title>${pageName}</title><script>$(scriptContent)</script></head> $(kissExpressHeader req) ${req.user} Hello world from the server! $(get_user_favWord req)")))
+            (res.send (wrapHTML req "<script>$(scriptContent)</script> ${req.user} Hello world from the server! $(get_user_favWord req)"))))
     (app.get "/test"
         (req_res_next []
             (set_user_favWord "test" req)

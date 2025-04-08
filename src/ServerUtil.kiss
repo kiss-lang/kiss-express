@@ -1,4 +1,5 @@
 (var &mut pageName "")
+(var &mut desc "")
 
 (import sqlite3.Database)
 (import node.Crypto)
@@ -25,7 +26,8 @@
                             getPort (js.Lib.dynamicImport "get-port")
                             port (takePort pkg.name getPort ,idealPorts)]
                 (set pageName pkg.name)
-                (let [ db (new Database ,kissExpressDbFile)
+                (set desc pkg.description)
+                (let [db (new Database ,kissExpressDbFile)
                         SQLiteStore (ConnectSqlite3.call ExpressSession)
                         :Dynamic ,app (Express.call)
                         ,(symbol) (Multer.call)]
@@ -101,7 +103,7 @@
                     (.get ,app "/login"
                         (req_res_next []
                             (res.send
-                                #"<h1>Sign in</h1>
+                                (wrapHTML req #"<r-c><h1>Sign in</h1>
                                     <form action="/login/password" method="post">
                                         <section>
                                             <label for="username">Username</label>
@@ -112,7 +114,7 @@
                                             <input id="current-password" name="password" type="password" autocomplete="current-password" required>
                                         </section>
                                         <button type="submit">Sign in</button>
-                                    </form>"#)))
+                                    </form></r-c>"#))))
                     (.post ,app "/logout" (req_res_next []
                         (doFor event onLogoutEvents
                             (event req))
@@ -122,7 +124,7 @@
                         })))
 
                     (.get ,app "/signup" (req_res_next []
-                        (res.send #"
+                        (res.send (wrapHTML req #"<r-c>
                             <h1>Sign up</h1>
                             <form action="/signup" method="post">
                                 <section>
@@ -134,7 +136,7 @@
                                     <input id="new-password" name="password" type="password" autocomplete="new-password" required>
                                 </section>
                                 <button type="submit">Sign up</button>
-                            </form>"#)))
+                            </form></r-c>"#))))
                     (.post ,app "/signup" (req_res_next []
                         (let [:Dynamic salt (Crypto.randomBytes 16)]
                             (Crypto.pbkdf2 req.body.password salt 310000 32 "sha256" ->[err hashedPassword] {
@@ -214,21 +216,62 @@
         port))
 
 (function kissExpressHeader [req]
-    (+ "<header><table><th>"
-        (let [runningSites (sort (collect (takenPorts.keys)))]
+    (+ "<header><r-c>"
+        (let [runningSites (sort (collect (takenPorts.keys)))
+                columnTag "c1-${runningSites.length}"]
+        	
             (apply +
                 (for site runningSites
-                    (+ "<td>"
+                    (+ "<${columnTag}>"
                         (if (= site pageName) "<b>" "")
                         "<a href=\"/\" onclick=\"javascript:event.target.port=$(dictGet takenPorts site);\">${site}</a>"
                         (if (= site pageName) "</b>" "")
-                        "</td>")
+                        "</${columnTag}>")
                     )))
-        #"</th></table>
-        <a class="button" href="/login">Sign in</a>
-        <form action="/logout" method="post">"#
-            req.user?.username
-            #"<button type="submit">Sign out</button>
-        </form>
-        <a class="button" href="/signup">Sign up</a>
-        </header>"#))
+        #"</r-c>
+        <r-c>
+            <c1-1>
+                <a class="button" href="/login">Sign in</a>
+                <form action="/logout" method="post">"#
+                    req.user?.username
+                    #"<button type="submit">Sign out</button>
+                </form>
+                <a class="button" href="/signup">Sign up</a>
+            </c1-1>
+        </r-c></header>"#))
+
+(var &mut css "")
+
+(function wrapHTML [:Dynamic req :String html &opt :String title :String description :String language :String charSet]
+	// Default title comes from package.json:
+    (unless title (set title pageName))
+    (unless description (set description desc))
+    (unless language (set language "en"))
+    (unless charSet (set charSet "utf-8"))
+    (unless css
+        (+= css (sys.io.File.getContent "css/r-c-min.css"))
+        (+= css "\n")
+        (+= css (sys.io.File.getContent "css/site-styles.css")))
+	"
+        <!DOCTYPE html>
+        <html lang=\"${language}\">
+        <head>
+            <meta charset=\"${charSet}\" />
+            <title>${title}</title>
+            <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+            <meta name=\"description\" content=\"${description}\" />
+
+            <!-- Responsive Columns CSS -->
+            <style>
+            ${css}
+            </style>
+        </head>
+        <body>
+            $(kissExpressHeader req)
+            <r-c>
+                ${html}
+            </r-c>
+        </body>
+        </html>
+	"
+    )

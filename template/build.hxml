@@ -3,7 +3,7 @@
 -cp src
 --each
 
---main template.FrontEndMain
+--main template.FrontendMain
 --dce full
 --define frontend
 --js bin/frontend.js
