@@ -58,3 +58,9 @@
 // Format the given Date's time in the given timezone (default to current time & time zone)
 (function :String localTimeString [&opt :Date date :String dateStyle :String timeStyle :String timeZone]
     (_localDateString false date dateStyle timeStyle timeZone))
+
+(function :js.html.Element element [:String tag &rest :kiss.List<js.html.Element> children]
+    (let [elem (js.Browser.document.createElement tag)]
+        (doFor child children
+            (elem.appendChild child))
+        elem))

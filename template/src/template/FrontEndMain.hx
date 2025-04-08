@@ -1,7 +1,7 @@
 package template;
 
-class FrontEndMain {
+class FrontendMain {
     static function main() {
-        FrontEndMain_.main();
+        FrontendMain_.main();
     }
 }
